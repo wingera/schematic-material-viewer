@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="原理图材料列表查看器 - 增强版">
+    <title>原理图材料列表查看器 - 增强版</title>
+    <!-- 使用正确的静态文件路径 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- 认证界面 -->
+    <div id="authContainer" class="auth-container card">
+        <div class="app-title" style="text-align: center;">
+            <h1>🧱 原理图材料列表</h1>
+            <div class="subtitle">高效管理您的工程项目材料</div>
+        </div>
+        
+        <div class="auth-tabs">
+            <div class="auth-tab active" id="loginTab">登录账户</div>
+            <div class="auth-tab" id="registerTab">注册账户</div>
+        </div>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="loginUsername">用户名</label>
+                <input type="text" id="loginUsername" placeholder="请输入用户名" required>
+            </div>
+            <div class="form-group">
+                <label for="loginPassword">密码</label>
+                <input type="password" id="loginPassword" placeholder="请输入密码" required>
+            </div>
+            <button type="submit" class="btn-primary" style="width: 100%;">
+                <span>登录系统</span>
+            </button>
+        </form>
+        
+        <form id="registerForm" style="display: none;">
+            <div class="form-group">
+                <label for="registerUsername">用户名</label>
+                <input type="text" id="registerUsername" placeholder="至少3个字符" required>
+                <div class="form-hint">用户名只能包含字母、数字和下划线</div>
+            </div>
+            <div class="form-group">
+                <label for="registerPassword">密码</label>
+                <input type="password" id="registerPassword" placeholder="至少6个字符" required>
+                <div class="form-hint">密码长度至少6个字符</div>
+            </div>
+            <button type="submit" class="btn-success" style="width: 100%;">
+                <span>注册账户</span>
+            </button>
+        </form>
+    </div>
+
+    <!-- 主应用界面 -->
+    <div id="appContainer" style="display: none;">
+        <div class="header">
+            <div class="header-content">
+                <div class="app-title">
+                    <h1>🧱 原理图材料列表查看器</h1>
+                    <div class="subtitle">实时协作 · 多格式支持 · 移动端优化</div>
+                </div>
+                
+                <div class="user-info card">
+                    <div>
+                        <span>欢迎回来, </span>
+                        <span class="username" id="currentUsername">用户</span>
+                    </div>
+                    <button class="btn-outline" id="logoutBtn">
+                        <span>退出登录</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="btn-group">
+                <button class="btn-primary" id="openFileBtn">
+                    <span>📁</span>
+                    <span>上传文件</span>
+                </button>
+                <button class="btn-success" id="saveFileBtn">
+                    <span>💾</span>
+                    <span>保存文件</span>
+                </button>
+                <button class="btn-info" id="refreshFilesBtn">
+                    <span>🔄</span>
+                    <span>刷新列表</span>
+                </button>
+                <button class="btn-outline" id="showAllFilesBtn">
+                    <span>📋</span>
+                    <span>所有文件</span>
+                </button>
+            </div>
+            
+            <div class="stats-bar" id="statsBar" style="display: none;">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalItems">0</div>
+                    <div class="stat-label">总计材料</div>
+                </div>
+                <div class="stat-card status-completed">
+                    <div class="stat-value" id="completedItems">0</div>
+                    <div class="stat-label">已完成</div>
+                </div>
+                <div class="stat-card status-in-progress">
+                    <div class="stat-value" id="inProgressItems">0</div>
+                    <div class="stat-label">进行中</div>
+                </div>
+                <div class="stat-card status-not-completed">
+                    <div class="stat-value" id="notCompletedItems">0</div>
+                    <div class="stat-label">未完成</div>
+                </div>
+            </div>
+            
+            <div class="connection-status">
+                <div class="connection-dot" id="connectionDot"></div>
+                <span id="connectionStatus">连接中...</span>
+                <span id="userCount" style="margin-left: 10px; font-size: 12px; opacity: 0.7;"></span>
+            </div>
+
+            <div class="connection-status-bar">
+                <span id="connectionDot" class="connection-dot"></span>
+                <span id="connectionStatus">连接状态: 检查中...</span>
+            </div>
+        </div>
+
+        <!-- 文件列表区域 -->
+        <div class="file-list-container card" style="padding: 20px;">
+            <h3 style="margin-bottom: 16px;">📁 我的文件</h3>
+            <div class="file-grid" id="fileList">
+                <!-- 文件卡片将通过JavaScript动态生成 -->
+            </div>
+        </div>
+
+        <!-- 数据表格区域 -->
+        <div class="table-container">
+            <div class="table-wrapper">
+                <table id="materialsTable">
+                    <thead>
+                        <tr>
+                            <th>物品名称</th>
+                            <th>数量</th>
+                            <th>盒数</th>
+                            <th>组数</th>
+                            <th>个数</th>
+                            <th>状态</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- 表格数据将通过JavaScript动态生成 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 隐藏的文件输入 -->
+        <input type="file" id="fileInput" style="display: none;" accept=".csv,.sti">
+        
+        <!-- 右键菜单UI -->
+        <div class="context-menu" id="contextMenu">
+            <div class="context-menu-item" data-action="in-progress">🟡 标记为进行中</div>
+            <div class="context-menu-item" data-action="completed">🟢 标记为已完成</div>
+            <div class="context-menu-item" data-action="not-completed">🔴 标记为未完成</div>
+        </div>
+
+        <!-- 移动端工具栏 -->
+        <div class="mobile-toolbar" id="mobileToolbar" style="display: none;">
+            <button class="btn-warning" id="mobileInProgressBtn">
+                <span>🟡</span>
+                <span>进行中</span>
+            </button>
+            <button class="btn-success" id="mobileCompletedBtn">
+                <span>🟢</span>
+                <span>已完成</span>
+            </button>
+            <button class="btn-danger" id="mobileNotCompletedBtn">
+                <span>🔴</span>
+                <span>未完成</span>
+            </button>
+            <button class="btn-outline" id="mobileCancelBtn">
+                <span>取消</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- 第三方库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    
+    <!-- 应用脚本  -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
