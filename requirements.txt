@@ -1,0 +1,6 @@
+Flask==2.3.3
+flask-socketio==5.3.3
+eventlet==0.33.3
+gunicorn==21.2.0
+chardet==5.1.0
+Werkzeug==2.3.7
